@@ -24,11 +24,17 @@ def get_db():
         yield db_sess
     finally:
         db_sess.close()
+def daily_loop():
+    while True:
+        send_daily_error_summary()
+        time.sleep(86400)  # 24 hours
+
 
 @app.on_event("startup")
 def startup_event():
     models.Base.metadata.create_all(bind=db.engine)
     threading.Thread(target=rotation_loop, daemon=True).start()
+    threading.Thread(target=daily_loop, daemon=True).start()  # <-- this is new
 
 @app.get("/status", dependencies=[Depends(auth.verify_api_key)])
 def get_status(db: Session = Depends(get_db)):
