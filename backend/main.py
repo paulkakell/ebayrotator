@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Depends
 from app import models, db, crud, auth
 from app.services import ebay, sellbrite
-from sqlalchemy.orm import Session
+from datetime import datetime, timedelta
+from email.mime.text import MIMEText
 from fastapi.middleware.cors import CORSMiddleware
-import threading, time, requests
+from sqlalchemy.orm import Session
+import threading, time, requests, smtplib
 
 app = FastAPI()
 
@@ -101,3 +103,29 @@ def trigger_playwright_delete(item_id: str):
             raise Exception(f"Playwright bot failed: {response.text}")
     except Exception as e:
         raise Exception(f"Error calling playwright-bot: {str(e)}")
+def send_daily_error_summary():
+    db_sess = db.SessionLocal()
+    try:
+        since = datetime.utcnow() - timedelta(days=1)
+        errors = db_sess.query(models.ErrorLog).filter(models.ErrorLog.timestamp > since).all()
+        if not errors:
+            return
+
+        body = "\n\n".join(f"{e.timestamp} - {e.step} - {e.sku} - {e.message}" for e in errors)
+        creds = crud.get_settings(db_sess)
+        email_to = creds.get("alert_email")
+
+        if email_to:
+            msg = MIMEText(body)
+            msg["Subject"] = "eBay Bot Daily Error Report"
+            msg["From"] = "bot@localhost"
+            msg["To"] = email_to
+
+            server = smtplib.SMTP("mailserver.local", 25)  # Or your relay
+            server.sendmail("bot@localhost", [email_to], msg.as_string())
+            server.quit()
+    except Exception as e:
+        crud.log_error(db_sess, "send_daily_summary", str(e))
+    finally:
+        db_sess.close()
+
