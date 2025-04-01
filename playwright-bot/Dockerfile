@@ -2,10 +2,9 @@ FROM mcr.microsoft.com/playwright/python:v1.42.0-jammy
 
 WORKDIR /app
 
+# Only install what mysqlclient needs
 RUN apt-get update && apt-get install -y \
     gcc \
-    libmariadb-dev-compat \
-    libmariadb-dev \
     default-libmysqlclient-dev \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
