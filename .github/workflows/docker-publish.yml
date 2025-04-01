@@ -1,13 +1,9 @@
-name: Docker Build & Push
+name: Docker Build & Push (Multi-Service)
 
 on:
   push:
-    branches:
-      - main  # or your default branch
+    branches: [main]
   workflow_dispatch:
-
-env:
-  IMAGE_NAME: paulkakell/ebayrotator
 
 jobs:
   build-and-push:
@@ -17,27 +13,23 @@ jobs:
       - name: ⬇️ Checkout repo
         uses: actions/checkout@v4
 
-      - name: 🔐 Log in to Docker Hub
+      - name: 🔐 Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: 🏗️ Build image
+      - name: 🏗️ Build & Push Backend
         run: |
-          docker build -t $IMAGE_NAME:latest .
+          docker build -t paulkakell/ebayrotator-backend:latest ./backend
+          docker push paulkakell/ebayrotator-backend:latest
 
-      - name: 🚀 Push to Docker Hub
+      - name: 🏗️ Build & Push Frontend
         run: |
-          docker push $IMAGE_NAME:latest
-          
-      - name: 🏗️ Build image with SHA
+          docker build -t paulkakell/ebayrotator-frontend:latest ./frontend
+          docker push paulkakell/ebayrotator-frontend:latest
+
+      - name: 🏗️ Build & Push Playwright Bot
         run: |
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          docker build -t $IMAGE_NAME:latest -t $IMAGE_NAME:$SHORT_SHA .
-
-
-
-
-
-
+          docker build -t paulkakell/ebayrotator-bot:latest ./playwright-bot
+          docker push paulkakell/ebayrotator-bot:latest
