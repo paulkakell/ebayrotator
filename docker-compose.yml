@@ -19,5 +19,19 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
+  playwright-bot:
+    build: ./playwright-bot
+    depends_on:
+      - db
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_HOST: db
+      DB_PORT: 3306
+    entrypoint: ["python", "run_bot.py"]
+    # You can pass ITEM_ID to manually run delete
+    # command: ["python", "run_bot.py", "--item_id", "123456"]
+
 volumes:
   db_data:
