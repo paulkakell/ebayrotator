@@ -3,8 +3,7 @@ from app import models, db, crud, auth
 from app.services import ebay, sellbrite
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
-import threading
-import time
+import threading, time, requests
 
 app = FastAPI()
 
@@ -74,7 +73,7 @@ def rotation_loop():
             sku = oldest_item['sku']
 
             ebay.end_listing(item_id, ebay_creds)
-            ebay.scrape_and_delete_ended_listing(item_id)
+            trigger_playwright_delete(item_id)
 
             product = sellbrite.get_product_by_sku(sku, sellbrite_key)
             if not product:
@@ -90,3 +89,15 @@ def rotation_loop():
         finally:
             db_sess.close()
         time.sleep(sleep_minutes * 60)
+        
+def trigger_playwright_delete(item_id: str):
+    try:
+        response = requests.post(
+            "http://playwright-bot:9000/delete-ended-listing",
+            json={"item_id": item_id},
+            timeout=30
+        )
+        if not response.ok:
+            raise Exception(f"Playwright bot failed: {response.text}")
+    except Exception as e:
+        raise Exception(f"Error calling playwright-bot: {str(e)}")
