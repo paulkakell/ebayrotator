@@ -29,9 +29,9 @@ services:
       DB_NAME: ${DB_NAME}
       DB_HOST: db
       DB_PORT: 3306
-    entrypoint: ["python", "run_bot.py"]
-    # You can pass ITEM_ID to manually run delete
-    # command: ["python", "run_bot.py", "--item_id", "123456"]
+    expose:
+      - "9000"
+
 
 volumes:
   db_data:
