@@ -7,7 +7,7 @@ from datetime import datetime
 from app.models import Setting  # You can move this locally if needed
 
 def get_db_settings():
-    DB_URL = f"mariadb+mariadbconnector://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{os.environ['DB_NAME']}"
+    DB_URL = f"mysql+mysqldb://{os.environ['DB_USER']}:{os.environ['DB_PASSWORD']}@{os.environ['DB_HOST']}:{os.environ['DB_PORT']}/{os.environ['DB_NAME']}"
     engine = create_engine(DB_URL)
     Session = sessionmaker(bind=engine)
     session = Session()
