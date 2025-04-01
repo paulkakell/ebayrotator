@@ -1,0 +1,37 @@
+name: Docker Build & Push
+
+on:
+  push:
+    branches:
+      - main  # or your default branch
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: paulkakell/ebayrotator
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 🔐 Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: 🏗️ Build image
+        run: |
+          docker build -t $IMAGE_NAME:latest .
+
+      - name: 🚀 Push to Docker Hub
+        run: |
+          docker push $IMAGE_NAME:latest
+          
+      - name: 🏗️ Build image with SHA
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          docker build -t $IMAGE_NAME:latest -t $IMAGE_NAME:$SHORT_SHA .
