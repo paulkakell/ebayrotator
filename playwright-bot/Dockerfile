@@ -1,10 +1,9 @@
-FROM mcr.microsoft.com/playwright/python:v1.43.1
+FROM mcr.microsoft.com/playwright/python:v1.42.0-jammy
 
-WORKDIR /bot
+WORKDIR /app
+COPY bot /app/bot
+COPY run_bot.py /app/run_bot.py
 
-COPY ./bot /bot
-COPY run_bot.py /bot/
-
-RUN pip install --no-cache-dir playwright python-dotenv
+RUN pip install mariadb sqlalchemy python-dotenv
 
 CMD ["python", "run_bot.py"]
