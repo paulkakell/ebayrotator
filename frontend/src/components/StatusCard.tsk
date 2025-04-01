@@ -1,1 +1,24 @@
 
+import { useEffect, useState } from "react";
+import { api } from "../api";
+
+export default function StatusCard() {
+  const [status, setStatus] = useState<any>(null);
+
+  useEffect(() => {
+    api.get("/status")
+      .then(res => setStatus(res.data))
+      .catch(err => console.error(err));
+  }, []);
+
+  if (!status) return <p>Loading status...</p>;
+
+  return (
+    <div className="border p-4">
+      <h2 className="text-xl font-bold mb-2">Last Rotation</h2>
+      <p><strong>Time:</strong> {status.last_run}</p>
+      <p><strong>SKU:</strong> {status.last_sku}</p>
+      <p><strong>Success:</strong> {status.success ? "✅" : "❌"}</p>
+    </div>
+  );
+}
