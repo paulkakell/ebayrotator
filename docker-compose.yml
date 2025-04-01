@@ -3,7 +3,7 @@ version: '3.9'
 services:
 
   backend:
-    image: paulkakell/ebayrotator:latest
+    image: paulkakell/ebayrotator-backend:latest
     container_name: backend
     env_file: .env
     environment:
@@ -16,7 +16,7 @@ services:
       - ebaynet
 
   playwright-bot:
-    image: paulkakell/ebayrotator:latest
+    image: paulkakell/ebayrotator-bot:latest
     container_name: playwright-bot
     command: ["uvicorn", "run_bot:app", "--host", "0.0.0.0", "--port", "9000"]
     environment:
@@ -33,7 +33,7 @@ services:
       - ebaynet
 
   frontend:
-    image: paulkakell/ebayrotator:latest
+    image: paulkakell/ebayrotator-frontend:latest
     container_name: frontend
     command: ["npm", "run", "dev", "--", "--host", "--port", "5173"]
     ports:
