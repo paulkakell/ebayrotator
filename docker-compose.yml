@@ -1,43 +1,65 @@
 version: '3.9'
+
 services:
+
   backend:
-    build: ./backend
+    image: paulkakell/ebayrotator:latest
+    container_name: backend
     env_file: .env
-    depends_on:
-      - db
+    environment:
+      - DB_HOST=db
     ports:
       - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - ebaynet
+
+  playwright-bot:
+    image: paulkakell/ebayrotator:latest
+    container_name: playwright-bot
+    command: ["uvicorn", "run_bot:app", "--host", "0.0.0.0", "--port", "9000"]
+    environment:
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_HOST=db
+      - DB_PORT=3306
+    expose:
+      - "9000"
+    depends_on:
+      - db
+    networks:
+      - ebaynet
+
   frontend:
-    build: ./frontend
+    image: paulkakell/ebayrotator:latest
+    container_name: frontend
+    command: ["npm", "run", "dev", "--", "--host", "--port", "5173"]
     ports:
       - "5173:5173"
     depends_on:
       - backend
+    networks:
+      - ebaynet
 
   db:
     image: mariadb:10.11
+    container_name: mariadb
     restart: unless-stopped
     environment:
-      MARIADB_ROOT_PASSWORD: rootpassword
-      MARIADB_DATABASE: ${DB_NAME}
-      MARIADB_USER: ${DB_USER}
-      MARIADB_PASSWORD: ${DB_PASSWORD}
+      - MARIADB_ROOT_PASSWORD=rootpassword
+      - MARIADB_DATABASE=${DB_NAME}
+      - MARIADB_USER=${DB_USER}
+      - MARIADB_PASSWORD=${DB_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
-
-  playwright-bot:
-    build: ./playwright-bot
-    depends_on:
-      - db
-    environment:
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_NAME: ${DB_NAME}
-      DB_HOST: db
-      DB_PORT: 3306
-    expose:
-      - "9000"
-
+    networks:
+      - ebaynet
 
 volumes:
   db_data:
+
+networks:
+  ebaynet:
+    driver: bridge
