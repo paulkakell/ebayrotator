@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, BackgroundTasks,Depends
 from app import models, db, crud, auth
 from app.services import ebay, sellbrite
 from datetime import datetime, timedelta
@@ -135,3 +135,9 @@ def send_daily_error_summary():
     finally:
         db_sess.close()
 
+from fastapi import BackgroundTasks
+
+@app.post("/send-report", dependencies=[Depends(auth.verify_api_key)])
+def send_report_now(background_tasks: BackgroundTasks):
+    background_tasks.add_task(send_daily_error_summary)
+    return {"message": "Report is being sent."}
